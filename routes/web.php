@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\Admin\UserController;
 /**
  * Ruta pública de inicio.
  */
@@ -57,3 +57,15 @@ Route::middleware(['auth', 'role:admin,recepcionista'])->group(function () {
  * Rutas de autenticación (login, register, logout, etc.).
  */
 require __DIR__.'/auth.php';
+
+/**
+ * Rutas de administración de usuarios.
+ * Acceso exclusivo para administradores.
+ */
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::resource('users', UserController::class)
+            ->except(['create', 'store', 'show']);
+    });
