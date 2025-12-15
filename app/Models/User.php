@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\Role;
+use Carbon\Carbon;
 
 class User extends Authenticatable
 {
@@ -20,6 +21,10 @@ class User extends Authenticatable
         'password',
         'role_id',
         'active',
+        // Membresía asignada
+        'membership_id',
+        'membership_start_date',
+        'membership_end_date',
     ];
 
     /**
@@ -45,4 +50,28 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
+
+    /**
+     * Membresía asignada al usuario.
+     */
+    public function membership()
+    {
+        return $this->belongsTo(\App\Models\Membership::class);
+    }
+
+
+
+    /**
+     * Indica si la membresía del usuario está activa.
+     */
+    public function getMembershipIsActiveAttribute(): bool
+    {
+        if (!$this->membership_end_date) {
+            return false;
+        }
+
+        return Carbon::now()->lte($this->membership_end_date);
+    }
+
+
 }

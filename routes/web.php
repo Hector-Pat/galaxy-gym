@@ -1,67 +1,84 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\UserController;
-/**
- * Ruta pública de inicio.
- */
+use App\Http\Controllers\Admin\MembershipController;
+use App\Http\Controllers\Admin\MembershipAssignmentController;
+
+/*
+|--------------------------------------------------------------------------
+| Ruta pública
+|--------------------------------------------------------------------------
+*/
 Route::get('/', function () {
     return view('welcome');
 });
 
-/**
- * Dashboard principal.
- * Requiere autenticación y verificación (Breeze).
- */
+/*
+|--------------------------------------------------------------------------
+| Dashboard principal
+| Requiere autenticación (Laravel Breeze)
+|--------------------------------------------------------------------------
+*/
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-/**
- * Rutas de perfil del usuario autenticado.
- */
+/*
+|--------------------------------------------------------------------------
+| Perfil del usuario autenticado
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-/**
- * ===============================
- * RUTAS DE PRUEBA POR ROL
- * ===============================
- * Estas rutas existen únicamente para validar
- * el funcionamiento del middleware de roles.
- */
-
-/**
- * Acceso exclusivo para administradores.
- */
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/admin-only', function () {
-        return 'Acceso solo para administradores';
-    });
+/*
+|--------------------------------------------------------------------------
+| Rutas de prueba por rol (validación de middleware)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:admin'])->get('/admin-only', function () {
+    return 'Acceso exclusivo para administradores';
 });
 
-/**
- * Acceso permitido para administradores y recepcionistas.
- */
-Route::middleware(['auth', 'role:admin,recepcionista'])->group(function () {
-    Route::get('/staff-only', function () {
-        return 'Acceso para admin y recepcionista';
+/*
+|--------------------------------------------------------------------------
+| Rutas de administración (ADMIN + RECEPCIONISTA)
+|--------------------------------------------------------------------------
+| - Gestión de membresías
+| - Asignación de membresías a clientes
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:admin,recepcionista'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+
+        /*
+         * CRUD de Membresías (catálogo)
+         */
+        Route::resource('memberships', MembershipController::class)
+            ->except(['create', 'show', 'edit']);
+
+        /*
+         * Asignación de membresía a clientes
+         */
+        Route::get('/memberships/assign', [MembershipAssignmentController::class, 'create'])
+            ->name('memberships.assign');
+
+        Route::post('/memberships/assign', [MembershipAssignmentController::class, 'store'])
+            ->name('memberships.assign.store');
     });
-});
 
-/**
- * Rutas de autenticación (login, register, logout, etc.).
- */
-require __DIR__.'/auth.php';
-
-/**
- * Rutas de administración de usuarios.
- * Acceso exclusivo para administradores.
- */
+/*
+|--------------------------------------------------------------------------
+| Rutas de administración de usuarios (SOLO ADMIN)
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
@@ -69,3 +86,10 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('users', UserController::class)
             ->except(['create', 'store', 'show']);
     });
+
+/*
+|--------------------------------------------------------------------------
+| Rutas de autenticación (Breeze)
+|--------------------------------------------------------------------------
+*/
+require __DIR__ . '/auth.php';
