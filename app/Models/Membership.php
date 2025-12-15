@@ -24,4 +24,12 @@ class Membership extends Model
         return $this->hasMany(\App\Models\User::class);
     }
 
+    /**
+     * Una membresía puede tener varias promociones.
+     */
+    public function promotions()
+    {
+        return $this->hasMany(Promotion::class);
+    }
+
 }

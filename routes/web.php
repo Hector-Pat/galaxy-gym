@@ -5,7 +5,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\MembershipController;
 use App\Http\Controllers\Admin\MembershipAssignmentController;
-
+use App\Http\Controllers\Admin\ClientController;
+use App\Http\Controllers\Admin\PromotionController;
 /*
 |--------------------------------------------------------------------------
 | Ruta pública
@@ -74,6 +75,25 @@ Route::middleware(['auth', 'role:admin,recepcionista'])
             ->name('memberships.assign.store');
     });
 
+
+
+Route::middleware(['auth', 'role:admin,recepcionista'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::resource('clients', ClientController::class)
+            ->except(['create', 'store', 'show']);
+    });
+
+
+Route::middleware(['auth', 'role:admin,recepcionista'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::resource('promotions', PromotionController::class)
+            ->except(['show']);
+    });
+
 /*
 |--------------------------------------------------------------------------
 | Rutas de administración de usuarios (SOLO ADMIN)
@@ -92,4 +112,11 @@ Route::middleware(['auth', 'role:admin'])
 | Rutas de autenticación (Breeze)
 |--------------------------------------------------------------------------
 */
+/**
+ * Usuario desactivado.
+ */
+Route::get('/user-disabled', function () {
+    return view('auth.user-disabled');
+})->name('user.disabled');
+
 require __DIR__ . '/auth.php';

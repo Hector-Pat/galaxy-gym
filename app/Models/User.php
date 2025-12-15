@@ -72,6 +72,17 @@ class User extends Authenticatable
 
         return Carbon::now()->lte($this->membership_end_date);
     }
+    /**
+     * Retorna la URL de la foto de perfil o un placeholder.
+     */
+    public function getProfilePhotoUrlAttribute(): string
+    {
+        if ($this->profile_photo_path) {
+            return asset('storage/' . $this->profile_photo_path);
+        }
+
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name);
+    }
 
 
 }
